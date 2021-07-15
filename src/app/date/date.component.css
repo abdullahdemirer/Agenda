@@ -1,0 +1,40 @@
+.my-container{
+    margin: 25px 25px;
+}
+
+
+.table{
+    width: 100%;
+    
+   }
+table,th,td{
+    border: 1px solid black;
+    border-collapse: collapse;
+    padding: 8px;
+    
+}
+caption{
+    border-top: 1px solid black;
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    padding: 10px;
+    caption-side: top;
+    text-align: center;
+
+}
+
+.btn{
+  background-color: lightgrey;
+  margin-left: 10px;
+  border-color: black;
+
+}
+.btn:hover {
+    background-color: grey;
+    cursor: pointer;
+}
+.btn:focus{
+    outline:0;
+    box-shadow: none;
+}
+  
