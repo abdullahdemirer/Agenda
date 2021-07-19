@@ -1,26 +1,26 @@
 <div class="my-container">
   <table id="table" class="table table-bordered border">
     <caption>
-      <button class="btn" (click)="aWeekAgo()" title="Bir hafta önce"><i class="bi bi-chevron-double-left" ></i></button>
-      <button class="btn" (click)="dayBefore()" title="Bir gün önce"><i class="bi bi-chevron-left"></i></button>
-      <button class="btn" (click)="today()" title="Bugün"><i class="bi bi-chevron-down" hover="adlkaldk"></i></button>
-      <button class="btn" (click)="dayAfter()" title="Bir gün sonra"><i class="bi bi-chevron-right"></i></button>
-      <button class="btn" (click)="aWeekAfter()" title="Bir hafta sonra"><i class="bi bi-chevron-double-right"></i></button>
+      <button class="btn" (click)="birHaftaGeriyeAl()" title="Bir hafta önce"><i class="bi bi-chevron-double-left" ></i></button>
+      <button class="btn" (click)="birGunGeriyeAl()" title="Bir gün önce"><i class="bi bi-chevron-left"></i></button>
+      <button class="btn" (click)="bugunuGoster()" title="Bugün"><i class="bi bi-chevron-down" hover="adlkaldk"></i></button>
+      <button class="btn" (click)="birGunIleriyeAl()" title="Bir gün sonra"><i class="bi bi-chevron-right"></i></button>
+      <button class="btn" (click)="birHaftaIleriyeAl()" title="Bir hafta sonra"><i class="bi bi-chevron-double-right"></i></button>
    
     </caption>
       
     <tr>
-        <th *ngFor="let date of dates">
-          {{date.date}}
+        <th *ngFor="let date of kullaniciyaGosterilecekListe">
+          {{date.tarih}}
         </th>
       </tr>
 
-      <tr *ngFor = "let number of[0,1,2,3,4,5,6,7,8]">
-        <td *ngFor = "let date of dates; let first = first" 
-        (click)="clickOn(date,number)"
-        [ngStyle]="{'background-color': date.back[number]}"
+      <tr *ngFor = "let zaman of zamanListesi ;let i=index;">
+        <td *ngFor = "let date of kullaniciyaGosterilecekListe; let first = first" 
+        (click)="clickOn(date,i)"
+        [ngStyle]="{'background-color': date.arkaPlanRenkleri[i]}"
         [ngClass]="{ 'first' : first }" >
-            <b *ngIf="first; else firstOrder ">{{date.time[number]}}</b>
+            <b *ngIf="first; else firstOrder ">{{date.zamanListesi[i]}}</b>
           <ng-template #firstOrder>
           </ng-template>
         </td>

@@ -1,7 +1,7 @@
 export class Schedule{
-    date:string;
-    isSelect:Array<boolean>;
-    allSelect:Array<boolean>;
-    time:Array<string>;
-    back:Array<string>;
+    tarih:string;
+    abonelikler:Array<boolean>;
+    rezervasyonlar:Array<boolean>;
+    zamanListesi:Array<string>;
+    arkaPlanRenkleri:Array<string>;
 }
