@@ -83,8 +83,8 @@ export class DateComponent implements OnInit {
   }
 }
 
-function yeniListeOlustur(manager: ScheduleManager, tumGunler: Schedule[], zamanListesi: string[], baslangicİndeksi: number): Schedule[] {
-  let yeniKullaniciListesi = tumGunler.slice(baslangicİndeksi, baslangicİndeksi + 20)
+function yeniListeOlustur(manager: ScheduleManager, tumGunler: Schedule[], zamanListesi: string[], baslangicIndeksi: number): Schedule[] {
+  let yeniKullaniciListesi = tumGunler.slice(baslangicIndeksi, baslangicIndeksi + 20)
   yeniKullaniciListesi = manager.ZamanSutunuEkle(yeniKullaniciListesi, zamanListesi)
   return yeniKullaniciListesi;
 }
