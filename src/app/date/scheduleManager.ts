@@ -120,7 +120,7 @@ export class ScheduleManager {
     }
 
     // kullanıcı bugün butonuna tıkladığı zaman tüm abonelikleri sıfırlama işlemi yapılıyor
-    aboneListeniTemizle() {
+    aboneListesiniTemizle() {
         for (let i = 0; i < this.zamanListesininUzunlugu; i++) {
             for (let j = 0; j < 7; j++) {
                 this.aboneZamanVeTarihListesi[i][j] = ""

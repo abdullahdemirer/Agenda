@@ -48,7 +48,7 @@ export class DateComponent implements OnInit {
     this.kullaniciyaGosterilecekListe = yeniListeOlustur(this.manager, this.tumGunler, this.zamanListesi, arananGununIndeksi)
   }
   bugunuGoster() {
-    this.manager.aboneListeniTemizle();
+    this.manager.aboneListesiniTemizle();
     this.tumGunler = this.manager.ilkListeyiOlustur(moment().format(this.tarihFormati), 20);
     this.kullaniciyaGosterilecekListe = this.tumGunler.slice();
     this.kullaniciyaGosterilecekListe = this.manager.ZamanSutunuEkle(this.kullaniciyaGosterilecekListe, this.zamanListesi)
