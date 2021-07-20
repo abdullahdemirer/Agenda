@@ -1,41 +1,38 @@
+import * as moment from "moment";
 import { Schedule } from "./schedule";
 
 export class ScheduleManager {
-    normalRenk: string // uygulama ilk açıldığında takvimdeki hücrelerin ilk rengi
-    rezervasyonRengi: string // kullanıcı herhangi bir güne rezervasyon eklediğinde gösterilecek arkaplan rengi
-    abonelikRengi: string // kullanıcı herhangi bir güne abonelik  eklediğinde gösterilecek arkaplan rengi
+    normalRenk: string // takvimdeki hücrelerin ilk arkaplan rengi
+    rezervasyonRengi: string // rezervasyon eklediğinde gösterilecek arkaplan rengi
+    abonelikRengi: string // abonelik eklediğinde gösterilecek arkaplan rengi
 
-    zamanListesininUzunlugu: number // Programı dinamik olarak çalıştırmak için gün oluştururken bu uzunluğa göre
-    // Schedule classının içindeki rezervasyon,abonelik ve arkaplan rengi gibi arrayleri oluşturuyorum.
+    zamanListesininUzunlugu: number // Uygulamada gösterilecek satır sayısı(zamanListesinin uzunluğu)
 
     aboneZamanVeTarihListesi: Array<Array<string>> = [[]]
-    /*  Array içerisinde haftanın her gününü temsil etmek amacıyla bir sütun(toplam 7 sutun), zaman tablosundaki her bir 
-        zamanı temsil etmek amacıylada bir satır bulunmaktadır. 
-        tumGunler listesine yeni bir tarih eklerken iç içe for döngüsü yardımıyla aboneZamanVeTarihListesindeki tarihler 
-        ile eklenecek tarihleri karşıklaştırarak( iki günü birbirinden çıkarıp  mod 7 işlemi yaparak)  boolean bir abonelik 
-        listesi oluşturuyorum.Daha sonra  bu liste aracılığıyla arkaplanRengini içeren bir liste oluşturuyorum.
-    */
+    /* Array[zamanListesininUzunlugu][7] içerisinde haftanın her gününü temsil etmek amacıyla bir sütun
+    (toplam 7 sutun), zaman tablosundaki her bir zamanı temsil etmek amacıylada bir satır bulunmaktadır. */
+    arananGun: string;
+    /* kullanıcının zamanı ileri veya geri aldığında oluşturalacak yeni kullaniciyaGosterilecekListesindeki
+    duruma göre ilk veya son tarihtir.*/
+    
+    tarihFormati: string // ekranda gösterilecek tarihlerin formatı (DD.MM.YYYY, vb.) 
 
-    arananGun: Date;
-    // kullanıcının zamanı ileri veya geri sararken, duruma göre kullaniciyaGosterilecekListe'nin ilke veya son elemanıdır.
-    // zamanı geriye alırken kullaniciyaGosterilecekListe'nin ilk elemanı
-    // zamanı ileri alırken kullaniciyaGosterilecekListe'nin son elemanıdır.
-
-    constructor(uzunluk: number, normalRenk: string, rezervasyonRengi: string, abonelikRengi: string) {
+    constructor(uzunluk: number, normalRenk: string, rezervasyonRengi: string, abonelikRengi: string, tarihFormati: string) {
         this.zamanListesininUzunlugu = uzunluk;
         this.normalRenk = normalRenk;
         this.rezervasyonRengi = rezervasyonRengi;
         this.abonelikRengi = abonelikRengi;
+        this.tarihFormati = tarihFormati;
         this.aboneZamanVeTarihListesi = AboneListesiOlustur(this.zamanListesininUzunlugu)
     }
 
-    // Uygulama ilk açıldığında kullanıcıya gösterilen 20 günlük listeyi oluşturyorum.
-    ilkListeyiOlustur(date: Date, gunSayisi: number): Array<Schedule> {
+    // Uygulama ilk açıldığında kullanıcıya gösterilen 20 günlük listeyi oluşturuyor.
+    ilkListeyiOlustur(guncelTarih: string, gunSayisi: number): Array<Schedule> {
         let gunler: Array<Schedule> = []
         for (let i = 0; i < gunSayisi; i++) {
-            let today = gunEkle(date, i)
+            let yeniTarih = moment(guncelTarih, this.tarihFormati).add(i, "days").format(this.tarihFormati)
             gunler.push({
-                tarih: today.toLocaleDateString("tr-TR"),
+                tarih: yeniTarih,
                 rezervasyonlar: varsayilanBoolListesiOlustur(this.zamanListesininUzunlugu),
                 abonelikler: varsayilanBoolListesiOlustur(this.zamanListesininUzunlugu),
                 zamanListesi: [],
@@ -45,8 +42,8 @@ export class ScheduleManager {
 
         return gunler;
     }
-    
-    // kullaniciyaGosterilecekListe'nin en başına zaman sutununu ekliyorum.
+
+    // kullaniciyaGosterilecekListe'nin en başına zaman sutununu ekliyor.
     ZamanSutunuEkle(kullaniciyaGosterilecekListe: Schedule[], zamanlar: string[]): Array<Schedule> {
         kullaniciyaGosterilecekListe.unshift({
             tarih: "",
@@ -58,21 +55,21 @@ export class ScheduleManager {
         return kullaniciyaGosterilecekListe;
     }
 
-    // zamanı geriye sardığımızda kullanıcya gösterilecek olan tarihin listede olup olmadığını, kontrol eder ,
-    //eğer gösterilecek olacak tarih listede yoksa tümgünler listesinin en başına  tarih ekler.
-    // yeni tarih eklerken eklenecek olan tarihi aboneZamanVeTarihListesinde kontrol ederek boolean bir abonelik listesi oluşturur.
-    // oluşan bu boolean listeyi kullanarak arkaplanrengi oluşturuyorum.
+    /* zamanı geriye aldığımızda  kullanıcya gösterilecek olan tarihin listede olup olmadığını kontrol eder,
+    eğer gösterilecek olacak tarih listede yoksa tümgünler listesinin en başına tarih ekleme işlemini yapıyor*/
     listeBasinaGunEkle(tumGunler: Schedule[], ilkGun: string, cikartilacakGunSayisi: number): Schedule[] {
-        this.arananGun = gunCikar(tarihOlustur(ilkGun), cikartilacakGunSayisi);
+        this.arananGun = moment(ilkGun, this.tarihFormati).subtract(cikartilacakGunSayisi, "days").format(this.tarihFormati)
+
         if (this.listedeGunAra(tumGunler, this.arananGun) == -1) {
 
             for (let i = 0; i < cikartilacakGunSayisi; i++) {
+                let eklenenTarih = moment(tumGunler[0].tarih, this.tarihFormati).subtract(1, "days").format(this.tarihFormati)
 
-                let eklenenTarih = gunCikar(tarihOlustur(tumGunler[0].tarih), 1);
-                let abonelikListesi = eklenenTarihIcinAbonelikKontrolu(eklenenTarih, this.aboneZamanVeTarihListesi, this.zamanListesininUzunlugu)
+
+                let abonelikListesi = eklenenTarihIcinAbonelikKontrolu(eklenenTarih, this.aboneZamanVeTarihListesi, this.zamanListesininUzunlugu, this.tarihFormati)
                 let arkaplanRenkListesi = eklenenTarihIcinArkaPlanRengiOlustur(abonelikListesi, this.normalRenk, this.abonelikRengi)
                 tumGunler.unshift({
-                    tarih: eklenenTarih.toLocaleDateString("tr-TR"),
+                    tarih: eklenenTarih,
                     rezervasyonlar: varsayilanBoolListesiOlustur(this.zamanListesininUzunlugu),
                     abonelikler: abonelikListesi,
                     zamanListesi: [],
@@ -85,21 +82,19 @@ export class ScheduleManager {
         return tumGunler;
     }
 
-    // zamanı ileriye  sardığımızda kullanıcya gösterilecek olan tarihin listede olup olmadığını, kontrol eder ,
-    //eğer gösterilecek olacak tarih listede yoksa tümgünler listesinin en sonuna tarih ekler.
-    // yeni tarih eklerken eklenecek olan tarihi aboneZamanVeTarihListesinde kontrol ederek boolean bir abonelik listesi oluşturur.
-    // oluşan bu boolean listeyi kullanarak arkaplanrengi oluşturuyorum.
+    /* zamanı ileriye aldığımızda  kullanıcya gösterilecek olan tarihin listede olup olmadığını kontrol eder,
+    eğer gösterilecek olacak tarih listede yoksa tümgünler listesinin en sonuna tarih ekleme işlemini yapıyor*/
     listeSonunaGunEkle(tumGunler: Schedule[], sonGun: string, eklenecekGunSayisi: number): Schedule[] {
-        this.arananGun = gunEkle(tarihOlustur(sonGun), eklenecekGunSayisi);
+        this.arananGun = moment(sonGun, this.tarihFormati).add(eklenecekGunSayisi, "days").format(this.tarihFormati)
 
         if (this.listedeGunAra(tumGunler, this.arananGun) == -1) {
             for (let i = 0; i < eklenecekGunSayisi; i++) {
 
-                let eklenenTarih = gunEkle(tarihOlustur(tumGunler[tumGunler.length - 1].tarih), 1);
-                let abonelikListesi = eklenenTarihIcinAbonelikKontrolu(eklenenTarih, this.aboneZamanVeTarihListesi, this.zamanListesininUzunlugu)
+                let eklenenTarih = moment(tumGunler[tumGunler.length - 1].tarih, this.tarihFormati).add(1, "days").format(this.tarihFormati)
+                let abonelikListesi = eklenenTarihIcinAbonelikKontrolu(eklenenTarih, this.aboneZamanVeTarihListesi, this.zamanListesininUzunlugu, this.tarihFormati)
                 let arkaplanRenkListesi = eklenenTarihIcinArkaPlanRengiOlustur(abonelikListesi, this.normalRenk, this.abonelikRengi)
                 tumGunler.push({
-                    tarih: eklenenTarih.toLocaleDateString("tr-TR"),
+                    tarih: eklenenTarih,
                     rezervasyonlar: varsayilanBoolListesiOlustur(this.zamanListesininUzunlugu),
                     abonelikler: abonelikListesi,
                     zamanListesi: [],
@@ -112,11 +107,11 @@ export class ScheduleManager {
 
     }
 
-    // Listede gün eklerken eklenecek olan en son günün listede olup olmadığını kontrol eder.
-    listedeGunAra(tumGunler: Schedule[], arananTarih: Date): number {
+    // tumGunler listesine gün eklerken eklenecek olan en son günün listede olup olmadığını kontrol ediyor.
+    listedeGunAra(tumGunler: Schedule[], arananTarih: string): number {
         let index = -1
         for (let i = 0; i < tumGunler.length; i++) {
-            if (tumGunler[i].tarih == arananTarih.toLocaleDateString("tr-TR")) {
+            if (tumGunler[i].tarih == arananTarih) {
                 index = i
                 break
             }
@@ -124,7 +119,7 @@ export class ScheduleManager {
         return index
     }
 
-    // kullanıcı bugün butonuna tıkladığı zaman tüm abonelikleri sıfırlamak için kullanıyorum.
+    // kullanıcı bugün butonuna tıkladığı zaman tüm abonelikleri sıfırlama işlemi yapılıyor
     aboneListeniTemizle() {
         for (let i = 0; i < this.zamanListesininUzunlugu; i++) {
             for (let j = 0; j < 7; j++) {
@@ -133,70 +128,56 @@ export class ScheduleManager {
         }
     }
 
-    // kullanıcı abonelik veya rezervasyon olmayan bir tarihe ait kutuya tıkladığında abonelik veya rezervasyon işlemleri
-    // yapılıyor. Abonelik olduğu zaman seçilen tarih aboneZamanVeTarihListesindeki'ne kaydediliyor.
-    abonelikRezervasyonEkle(tumGunler: Schedule[], secilmisGun: Schedule, zamanIndeksi: number) {
+    /* kullanıcı abonelik veya rezervasyon olmayan bir tarihe ait hücreye tıkladığında abonelik veya rezervasyon
+     işlemleri yapılıyor.*/
+    abonelikRezervasyonEkle(tumGunler: Schedule[], secilmisGun: Schedule, satirIndeksi: number) {
         let cevap = confirm("Abonelik mi?")
         let pozisyon = tumGunler.indexOf(secilmisGun);
         if (cevap) {
             for (let i = pozisyon % 7; i < tumGunler.length; i = i + 7) {
-                if (tumGunler[i].abonelikler[zamanIndeksi] == false) {
-                    tumGunler[i].abonelikler[zamanIndeksi] = true
-                    tumGunler[i].arkaPlanRenkleri[zamanIndeksi] = this.abonelikRengi;
+                if (tumGunler[i].abonelikler[satirIndeksi] == false) {
+                    tumGunler[i].abonelikler[satirIndeksi] = true
+                    tumGunler[i].arkaPlanRenkleri[satirIndeksi] = this.abonelikRengi;
                 }
             }
-            abonelikListesineTarihEkle(secilmisGun.tarih, this.aboneZamanVeTarihListesi, zamanIndeksi)
+            abonelikListesineTarihEkle(secilmisGun.tarih, this.aboneZamanVeTarihListesi, satirIndeksi, this.tarihFormati)
         } else {
-            tumGunler[pozisyon].rezervasyonlar[zamanIndeksi] = true
-            tumGunler[pozisyon].arkaPlanRenkleri[zamanIndeksi] = this.rezervasyonRengi;
+            tumGunler[pozisyon].rezervasyonlar[satirIndeksi] = true
+            tumGunler[pozisyon].arkaPlanRenkleri[satirIndeksi] = this.rezervasyonRengi;
         }
     }
 
-    // kullanıcı önceden rezervasyon yapılmış bir tarihe ait kutuya tıkladığı zaman,  tıklanılan hücreye ait  tarihten
-    // rezervasyonun kaldırılmasıyla  ilgili  işlemler yapılıyor.
-    rezervasyonIptalEt(tumGunler: Schedule[], secilmisGun: Schedule, zamanIndeksi: number) {
+    /* kullanıcı rezervasyon olan  bir tarihe ait hücreye tıkladığında hücreden rezervasyonun kaldırılmasıyla 
+     ilgili  işlemler yapılıyor.*/
+    rezervasyonIptalEt(tumGunler: Schedule[], secilmisGun: Schedule, satirIndeksi: number) {
         let cevap = confirm("Silinsin mi?")
         let pozisyon = tumGunler.indexOf(secilmisGun);
         if (cevap) {
-            tumGunler[pozisyon].rezervasyonlar[zamanIndeksi] = false
-            tumGunler[pozisyon].arkaPlanRenkleri[zamanIndeksi] = this.normalRenk;
+            tumGunler[pozisyon].rezervasyonlar[satirIndeksi] = false
+            tumGunler[pozisyon].arkaPlanRenkleri[satirIndeksi] = this.normalRenk;
         }
     }
 
-    // kullanıcı önceden abone olunmuş bir tarihe ait kutuya tıkladığı zaman, Takvimdeki tüm aboneliklerin veya tıklanılan hücreye
-    // ait aboneliğin  kaldırılması işlemleri yapılıyor. Abonelik iptal edildiği zaman  aboneZamanVeTarihListesindeki abonelik siliniyor.
-    abonelikIptalEt(tumGunler: Schedule[], secilmisGun: Schedule, zamanIndeksi: number) {
+    /* Takvimdeki tüm aboneliklerin veya tıklanılan hücreye ait aboneliğin kaldırılması işlemleri yapılıyor.*/
+    abonelikIptalEt(tumGunler: Schedule[], secilmisGun: Schedule, satirIndeksi: number) {
         let pozisyon = tumGunler.indexOf(secilmisGun);
         let cevap = confirm("Silinsin mi?")
         if (cevap) {
             let cevap2 = confirm("Abonelik silinsin mi?")
             if (cevap2) {
                 for (let i = pozisyon % 7; i < tumGunler.length; i = i + 7) {
-                    arkaPlanRenginiBelirle(tumGunler[i], zamanIndeksi, this.normalRenk, this.rezervasyonRengi)
+                    arkaPlanRenginiBelirle(tumGunler[i], satirIndeksi, this.normalRenk, this.rezervasyonRengi)
                 }
-                abonelikListesindenTarihSil(secilmisGun.tarih, this.aboneZamanVeTarihListesi, zamanIndeksi)
+                abonelikListesindenTarihSil(secilmisGun.tarih, this.aboneZamanVeTarihListesi, satirIndeksi, this.tarihFormati)
             } else {
-                arkaPlanRenginiBelirle(tumGunler[pozisyon], zamanIndeksi, this.normalRenk, this.rezervasyonRengi)
+                arkaPlanRenginiBelirle(tumGunler[pozisyon], satirIndeksi, this.normalRenk, this.rezervasyonRengi)
             }
         }
     }
 }
 
-// gönderilen tarihe gün ekleyerek yeni tarih oluşturur.
-function gunEkle(date: Date, days: number): Date {
-    var result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result;
-}
-
-// gönderilen tarihten gün ekleyerek yeni tarih oluşturur.
-function gunCikar(date: Date, days: number): Date {
-    var result = new Date(date);
-    result.setDate(result.getDate() - days);
-    return result;
-}
-
-// tüm elemanları false olan bir liste dönderir. Lstenin uzunlu zamanListesiyle aynıdır.
+/* tüm elemanları false olan bir liste oluşturuyor.-- Uygulama ilk açıldığında rezervasyon ve abonelik 
+listesi için */
 function varsayilanBoolListesiOlustur(zamanSayisi: number): boolean[] {
     let boolListesi: Array<boolean> = []
     for (let i = 0; i < zamanSayisi; i++) {
@@ -205,7 +186,7 @@ function varsayilanBoolListesiOlustur(zamanSayisi: number): boolean[] {
     return boolListesi;
 }
 
-// tüm elemanları normal renk(bu uygulama için beyaz) olan bir iste dönderir.Listenin uzunlu zamanListesiyle aynıdır.
+//Uygulama ilk açıldığında oluşturulan hücrelerin arkaplanı normalRenk olarak ayarlıyor.
 function varsayilanArkaPlanRenkListesiOlustur(zamanSayisi: number, renk: string): string[] {
     let renkListesi: Array<string> = []
     for (let i = 0; i < zamanSayisi; i++) {
@@ -214,7 +195,7 @@ function varsayilanArkaPlanRenkListesiOlustur(zamanSayisi: number, renk: string)
     return renkListesi;
 }
 
-//aboneZamanVeTarihListesi için içi boş 2 boyutlu(zamanListesinin uzunluğu X 7) bir array oluşturulur.
+//aboneZamanVeTarihListesi için içi boş 2 boyutlu([zamanListesinin_uzunluğu][7]) bir array oluşturuyor.
 function AboneListesiOlustur(uzunluk: number): string[][] {
     let aboneListesi = []
     for (let i = 0; i < uzunluk; i++) {
@@ -227,25 +208,16 @@ function AboneListesiOlustur(uzunluk: number): string[][] {
     return aboneListesi;
 }
 
-// string haldeki tarihi Date formatına çeviriyor.
-function tarihOlustur(date: string): Date {
-    var input = date.split(".")
-    var day = parseInt(input[0], 10)
-    var month = parseInt(input[1], 10)
-    var year = parseInt(input[2], 10)
-    var newdate = new Date(year, month - 1, day);
-    return newdate;
-}
 
-// eklenen yeni tarih aboneZamanVeTarihListesi listeninde kontrol edilerek herbir zaman için true yada false içiren 
-// bir array oluşturulup gönderilir.Daha sonra bu array yardımıyla eklenecek tarihin arkaplan renkleri  belirlenecek.
-function eklenenTarihIcinAbonelikKontrolu(eklenenTarih: Date, aboneZamanVeTarihListesi: string[][], uzunluk: number): boolean[] {
+/* eklenen yeni tarih aboneZamanVeTarihListesi listeninde kontrol edilerek herbir satır için true yada false
+ içiren bir array oluşturuyor.*/
+function eklenenTarihIcinAbonelikKontrolu(eklenenTarih: string, aboneZamanVeTarihListesi: string[][], uzunluk: number, tarihFormati: string): boolean[] {
     var abonelikBoolListesi = []
     for (let i = 0; i < uzunluk; i++) {
         let check = false;
         for (let j = 0; j < 7; j++) {
             if (aboneZamanVeTarihListesi[i][j] != "") {
-                if (tarihleriKarsilastir(tarihOlustur(aboneZamanVeTarihListesi[i][j]), eklenenTarih)) {
+                if (tarihleriKarsilastir(aboneZamanVeTarihListesi[i][j], eklenenTarih, tarihFormati)) {
                     check = true;
                     break
                 }
@@ -256,18 +228,19 @@ function eklenenTarihIcinAbonelikKontrolu(eklenenTarih: Date, aboneZamanVeTarihL
     return abonelikBoolListesi;
 }
 
-// iki tarih arasındaki farkın mod 7 işlemi yapılarak, karşılaştırılan tarihlerin birbirlerinin katı olup olmadığı kontrolü yapılıyor
-// iki tarih birbirinin katıysa true değilse false dönüyor.
-function tarihleriKarsilastir(tarih: Date, eklenenTarih: Date): boolean {
-    if (tarih.getTime() > eklenenTarih.getTime()) {
-        return ((tarih.getTime() - eklenenTarih.getTime()) / (1000 * 3600 * 24)) % 7 == 0
+/* iki tarihin birbirinin katı olup olmadığı belirleniyor. */
+function tarihleriKarsilastir(aboneOlunmusTarih: string, eklenenTarih: string, tarihFormati: string): boolean {
+    var gunSayisi = Math.abs(moment(aboneOlunmusTarih, tarihFormati).diff(moment(eklenenTarih, tarihFormati), "days"))
+    if (gunSayisi % 7 == 0) {
+        return true;
     }
 
-    return ((eklenenTarih.getTime() - tarih.getTime()) / (1000 * 3600 * 24)) % 7 == 0
+    return false;
 
 }
 
-// eklenenTarihIcinAbonelikKontrolu methodundan dönen boolean array yardımıyla yeni eklenecek tarihin arkaplan renkleri belirleniyor.
+/* eklenenTarihIcinAbonelikKontrolu methodundan dönen boolean array yardımıyla yeni eklenecek tarihin arkaplan 
+renklerini belirliyor.*/
 function eklenenTarihIcinArkaPlanRengiOlustur(abonelikListesi: boolean[], normalRenk: string, abonelikRengi: string) {
     var arkaplanRenkListesi = [];
     for (let i = 0; i < abonelikListesi.length; i++) {
@@ -280,13 +253,13 @@ function eklenenTarihIcinArkaPlanRengiOlustur(abonelikListesi: boolean[], normal
     return arkaplanRenkListesi;
 }
 
-// Tıklanan kutucuğun satır indeksi ve tarihi ile aboneZamanVeTarihListesi'nin aynı satır indeksinde yer alan array içersindeki
-// tarihler karşıklaştırılarak, eğer birbirinin katı tarihler yoksa tıklanılan kutucuğun tarihi eklenir.
-function abonelikListesineTarihEkle(tarih: string, aboneZamanVeTarihListesi: string[][], index: number) {
+/*Abonelik eklendiği  zaman tıklanılan hücreye ait tarihin katı aboneZamanVeTarihListesinde yoksa 
+aboneZamanVeTarihListesine listene ekleniyor.*/
+function abonelikListesineTarihEkle(tarih: string, aboneZamanVeTarihListesi: string[][], satirIndeksi: number, tarihFormati: string) {
     let kontrol: boolean = false;
     for (let i = 0; i < 7; i++) {
-        if (aboneZamanVeTarihListesi[index][i] != "") {
-            if (tarihleriKarsilastir(tarihOlustur(aboneZamanVeTarihListesi[index][i]), tarihOlustur(tarih))) {
+        if (aboneZamanVeTarihListesi[satirIndeksi][i] != "") {
+            if (tarihleriKarsilastir(aboneZamanVeTarihListesi[satirIndeksi][i], tarih, tarihFormati)) {
                 kontrol = true;
                 break;
             }
@@ -295,22 +268,21 @@ function abonelikListesineTarihEkle(tarih: string, aboneZamanVeTarihListesi: str
 
     if (!kontrol) {
         for (let i = 0; i < 7; i++) {
-            if (aboneZamanVeTarihListesi[index][i] == "") {
-                aboneZamanVeTarihListesi[index][i] = tarih;
+            if (aboneZamanVeTarihListesi[satirIndeksi][i] == "") {
+                aboneZamanVeTarihListesi[satirIndeksi][i] = tarih;
                 break;
             }
         }
     }
 }
 
-// Tıklanan kutucuğun satır indeksi ve tarihi ile aboneZamanVeTarihListesi'nin aynı satır indeksinde yer alan array içersindeki
-// tarihler karşıklaştırılarak, gelen tarihin bir katı aboneZamanVeTarihListesi'nin aynı satır indeksinde yer alan array içerisinde
-// bulunursa o tarih silinir.
-function abonelikListesindenTarihSil(tarih: string, aboneZamanVeTarihListesi: string[][], index: number) {
+/*Abonelik kaldırıldığı zaman tıklanılan hücreye ait tarihin katı aboneZamanVeTarihListesinde bulunarak
+ listeden siliniyor.*/
+function abonelikListesindenTarihSil(tarih: string, aboneZamanVeTarihListesi: string[][], satirIndeksi: number, tarihFormati: string) {
     for (let i = 0; i < 7; i++) {
-        if (aboneZamanVeTarihListesi[index][i] != "") {
-            if (tarihleriKarsilastir(tarihOlustur(aboneZamanVeTarihListesi[index][i]), tarihOlustur(tarih))) {
-                aboneZamanVeTarihListesi[index][i] = ""
+        if (aboneZamanVeTarihListesi[satirIndeksi][i] != "") {
+            if (tarihleriKarsilastir(aboneZamanVeTarihListesi[satirIndeksi][i], tarih, tarihFormati)) {
+                aboneZamanVeTarihListesi[satirIndeksi][i] = ""
                 break;
             }
         }
@@ -318,7 +290,8 @@ function abonelikListesindenTarihSil(tarih: string, aboneZamanVeTarihListesi: st
 
 }
 
-// Abonelikten çıkan bir tarihin rezervasyonu varsa arkaplan rengi rezervasyonRengi aksi halde normalRenk olarak ayarlanır.
+/*Abonelikten çıkan bir tarihin rezervasyonu varsa arkaplan rengi rezervasyonRengi aksi halde normalRenk 
+olarak ayarlıyor.*/
 function arkaPlanRenginiBelirle(gun: Schedule, indeks: number, normalRenk: string, rezervasyonRengi: string) {
     gun.abonelikler[indeks] = false;
     if (gun.rezervasyonlar[indeks]) {
