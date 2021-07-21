@@ -30,7 +30,8 @@ export class DateComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
+    document.getElementById('table').style.backgroundColor = this.manager.normalRenk
+    document.getElementById('caption').style.backgroundColor = this.manager.normalRenk
   }
   /* Zamanı geri alma işlemlerinde listeye gerekli olan yeni tarihleri tümGunler listenin en başına sırasıyla 
    ekledikten sonra tümGunler listesininden arananGunun indeksinden başlayarak yeni 
@@ -82,7 +83,7 @@ export class DateComponent implements OnInit {
     }
   }
 }
-
+// tarihi ileri geri alma işlemlerindne sonra kullaniciyaGosterilecekListe'si güncelleniyor.
 function yeniListeOlustur(manager: ScheduleManager, tumGunler: Schedule[], zamanListesi: string[], baslangicIndeksi: number): Schedule[] {
   let yeniKullaniciListesi = tumGunler.slice(baslangicIndeksi, baslangicIndeksi + 20)
   yeniKullaniciListesi = manager.ZamanSutunuEkle(yeniKullaniciListesi, zamanListesi)

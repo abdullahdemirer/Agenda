@@ -128,8 +128,7 @@ export class ScheduleManager {
         }
     }
 
-    /* kullanıcı abonelik veya rezervasyon olmayan bir tarihe ait hücreye tıkladığında abonelik veya rezervasyon
-     işlemleri yapılıyor.*/
+    /*  abonelik veya rezervasyon işlemleri yapılıyor.*/
     abonelikRezervasyonEkle(tumGunler: Schedule[], secilmisGun: Schedule, satirIndeksi: number) {
         let cevap = confirm("Abonelik mi?")
         let pozisyon = tumGunler.indexOf(secilmisGun);
@@ -147,8 +146,7 @@ export class ScheduleManager {
         }
     }
 
-    /* kullanıcı rezervasyon olan  bir tarihe ait hücreye tıkladığında hücreden rezervasyonun kaldırılmasıyla 
-     ilgili  işlemler yapılıyor.*/
+    /* hücreden rezervasyonun kaldırılmasıyla ilgili  işlemler yapılıyor.*/
     rezervasyonIptalEt(tumGunler: Schedule[], secilmisGun: Schedule, satirIndeksi: number) {
         let cevap = confirm("Silinsin mi?")
         let pozisyon = tumGunler.indexOf(secilmisGun);
@@ -195,7 +193,8 @@ function varsayilanArkaPlanRenkListesiOlustur(zamanSayisi: number, renk: string)
     return renkListesi;
 }
 
-//aboneZamanVeTarihListesi için içi boş 2 boyutlu([zamanListesinin_uzunluğu][7]) bir array oluşturuyor.
+/* Abonelikleri tutmak için içi boş 2 boyutlu([zamanListesinin_uzunluğu][7]) bir array 
+ (aboneZamanVeTarihListesi) oluşturuyor. */
 function AboneListesiOlustur(uzunluk: number): string[][] {
     let aboneListesi = []
     for (let i = 0; i < uzunluk; i++) {
